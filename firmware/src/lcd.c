@@ -75,6 +75,9 @@ static void lcd_fill(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint16_t c)
         w = 240u - x;
     if (y + h > 240u)
         h = 240u - y;
+#if BLACKBOX
+    bb_capture_fill(x, y, w, h, c);
+#endif
     lcd_sync();
     k = 240u / w * w;                       /* whole rows per transfer (narrow fills: one DMA) */
     for (i = 0; i < k; i++)
@@ -91,6 +94,9 @@ static void lcd_blit(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint1
 {
     if (!w || !h)
         return;
+#if BLACKBOX
+    bb_capture_blit(x, y, w, h, px);
+#endif
     lcd_window(x, y, x + w - 1u, y + h - 1u);
     lcd_data(px, w * h * 2u);
 }
@@ -103,6 +109,17 @@ static const uint8_t LCD_SEQ[] = {
     0x00, 1, 150,
     0x11, 0,                     /* SLPOUT */
     0x00, 1, 120,
+#if BLACKBOX
+    /* Blackbox panel setup, from OpenPocket/Juice-Box stock-firmware research.
+     * The visible drawing window is 0..239, not the initial 40..279 window. */
+    0xB2, 5, 0x0C, 0x0C, 0x0C, 0x00, 0x33,
+    0xB7, 1, 0x56, 0xBB, 1, 0x18, 0xC0, 1, 0x2C,
+    0xC2, 1, 0x01, 0xC3, 1, 0x1F, 0xC4, 1, 0x20, 0xC6, 1, 0x0F,
+    0xD0, 2, 0xA6, 0xA1,
+    0xE0, 14, 0xD0, 0x0D, 0x14, 0x0B, 0x0B, 0x07, 0x3A, 0x44, 0x50, 0x08, 0x13, 0x13, 0x2D, 0x32,
+    0xE1, 14, 0xD0, 0x0D, 0x14, 0x0B, 0x0B, 0x07, 0x3A, 0x44, 0x50, 0x08, 0x13, 0x13, 0x2D, 0x32,
+    0xE7, 1, 0x00, 0x51, 1, 0xFF,
+#endif
     0x3A, 1, 0x55,               /* COLMOD: RGB565 */
     0x36, 1, 0x00,               /* MADCTL: top-left origin, RGB order */
     0x21, 0,                     /* INVON: IPS panel */

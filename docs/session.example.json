@@ -1,0 +1,17 @@
+{
+  "board": "blackbox-v23",
+  "armed": false,
+  "expires_at": 0,
+  "remaining_flashes": 0,
+  "ports": [],
+  "stock_package": "artifacts/downloads/BlackBox-current.fwsc",
+  "current_source_sha256": "",
+  "evidence": {
+    "survey": {"path": "", "sha256": ""},
+    "backup": {"path": "", "sha256": ""},
+    "first_flash": {"path": "", "sha256": ""},
+    "repeat_flash": {"path": "", "sha256": ""},
+    "recovery": {"path": "", "sha256": ""}
+  },
+  "audio_capture": null
+}

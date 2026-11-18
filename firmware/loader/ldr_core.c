@@ -30,12 +30,21 @@
  *   ldr_record_clear()    forget the RAM update record
  *   ldr_progress(done, total)
  * plus the ota.c hooks (frames, time, idle). */
+#if BLACKBOX
+#define LDR_APP_LO BB_APP_LO
+#define LDR_APP_HI BB_APP_HI
+#define LDR_REC_LO 0xE0000u
+#define LDR_REC_HI 0xE5000u
+#define LDR_DATA_LO 0xE5000u
+#define LDR_DATA_HI 0xE5000u
+#else
 #define LDR_APP_LO 0x4000u
 #define LDR_APP_HI 0x93000u
 #define LDR_REC_LO 0x93000u                     /* update records live above the app ... */
 #define LDR_REC_HI 0xFC000u                     /* ... and below Felucca's globals (Felucca's records: 0xE4F00, */
 #define LDR_DATA_LO 0x97000u                    /* the stock firmware's: 0xE8F00), never in Felucca's store, whose */
 #define LDR_DATA_HI 0xE0000u                    /* bytes (user samples) the host writes */
+#endif
 #define LDR_NSEC ((LDR_APP_HI - LDR_APP_LO) >> 12)
 
 static int ldr_fread(uint32_t off, void *p, uint32_t n);
@@ -88,6 +97,24 @@ static int ldr_chip_key(uint32_t *key)
     return -3;
 }
 
+#if BLACKBOX
+/* Match the installed boot directory before any erase, not just the package.
+ * V23's 0x6000 head must never be treated as V20's 0x4000 head. */
+static int ldr_target_layout(void)
+{
+    uint8_t e[32];
+    uint32_t off;
+    for (off = 32u; off < 160u; off += 32u) {
+        if (ldr_fread(off, e, 32)) return -1;
+        ota_jl_enc(e, 32);
+        if (ota_crc16(e + 2, 30, 0) != ota_rd16(e)) return -1;
+        if (ota_memeq(e + 16, (const uint8_t *)"app_dir_head", 13))
+            return ota_rd32(e + 4) == LDR_APP_LO ? 0 : -1;
+    }
+    return -1;
+}
+#endif
+
 /* 2b. flash.bin [0, fl_size) from the host, before any erase: its CRC16 must be the UFW entry's (want); sc gets
  * the CRC16 of each app sector as it came in */
 static int ldr_check(uint32_t fl_off, uint32_t fl_size, uint32_t want, uint16_t *sc, uint8_t *b)
@@ -119,6 +146,10 @@ static int ldr_session(void)
         return -3;
     if (fl_size != LDR_APP_HI)
         return -14;                                      /* another board's package: refused before any erase */
+#if BLACKBOX
+    if (ldr_target_layout())
+        return -15;
+#endif
     for (i = 0; i < ota_rd16(hdr + 8); i++)
         if (ota_rd16(hdr + 0x40 + i * 0x50u) == 0)
             want = ota_rd16(hdr + 0x40 + i * 0x50u + 4u);   /* flash.bin's data CRC16 */

@@ -1,5 +1,21 @@
 # Credits
 
+## blackbox-fm1 port
+
+- [OpenPocket](https://github.com/isod89/openpocket), isod89 and contributors:
+  Blackbox hardware/audio/display research and pinned toolchain/SDK references
+  (GPL-3.0-only project; BSP/loader portions retain MPL-2.0).
+- [Juice-Box](https://github.com/JPMViana/juicebox-nam-player), João Viana:
+  hardware-tested input/codec mapping and Blackbox packaging research (GPL-3.0).
+- [Harbor](https://github.com/markterm/harbor), Mark White: reference for the
+  Android remote-panel architecture. No Harbor code or artwork copied; reuse
+  licence not identified in the inspected checkout.
+
+The independent Blackbox adapters and tools retain the SPDX licences in their
+headers. Original Felucca credits follow unchanged.
+
+## Felucca
+
 Felucca is Leo Kuroshita's ([@kurogedelic](https://github.com/kurogedelic), [Hügelton Instruments](https://hugelton.com)). It uses and
 thanks the work below; each keeps its own licence (see [LICENSE](LICENSE), [LICENSING.md](LICENSING.md) and [LICENSES/](LICENSES/)).
 

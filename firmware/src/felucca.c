@@ -56,6 +56,10 @@
 
 /* ------------------------------------------------------------- HAL --- */
 #include <stdint.h>
+#if BLACKBOX
+/* Bring-up allows OTA staging only. FM-1 storage overlaps stock Blackbox data. */
+#define FL_RANGE_OK(off, n) FL_IN(off, n, 0xE0000u, 0xE5000u)
+#endif
 #include "fm1_time.h"
 #include "fm1_sys.h"
 #include "fm1_irq.h"
@@ -68,7 +72,9 @@ static __attribute__((noinline)) int c1_wait(void) { return fm1_cpu1_wait(); }  
                                                  * path (chip/fm1_cpu1.h fm1_cpu1_retire) stays out of the audio ISR */
 #define C1_WAIT() c1_wait()
 #endif
+#if !BLACKBOX
 #include "keytouch.h"        /* 1.8 AFTERTOUCH: the scan's hooks (MPL-2.0, from fm1-base), before fm1_input.h */
+#endif
 #include "fm1_input.h"
 #include "fm1_timer.h"
 #include "fm1_audio.h"
@@ -78,6 +84,9 @@ static __attribute__((noinline)) int c1_wait(void) { return fm1_cpu1_wait(); }  
 
 /* ----------------------------------------------------- base, display --- */
 #include "../bsp/chip/libc.c"
+#if BLACKBOX
+#include "../boards/blackbox/remote_state.h"
+#endif
 #include "lcd.c"
 #include "gfx.c"
 
@@ -122,10 +131,15 @@ static __attribute__((noinline)) int c1_wait(void) { return fm1_cpu1_wait(); }  
 #include "../bsp/chip/ota.c"
 #include "ota_hw.c"
 #include "editor.c"              /* web editor SysEx (needs the OTA SysEx plumbing) */
+#if BLACKBOX
+#include "blackbox_remote.c"
+#endif
 #endif
 #if FELUCCA_CDC
 #include "console.c"
 #endif
+#if !BLACKBOX
 #include "keytouch.c"           /* 1.8 AFTERTOUCH: the keys' pressure (MPL-2.0, from fm1-base) */
+#endif
 #include "master.c"              /* the MASTER pot (#137: read before the audio starts) */
 #include "main.c"

@@ -104,6 +104,14 @@ static void fm1_main(void)
 #if FELUCCA_CPU2
     uint8_t c1_told = 0;                                /* 2ND CORE MISREAD shown (and ON cleared) */
 #endif
+#if BLACKBOX
+    /* Keep the updater reachable while display/audio bring-up runs. */
+    fm1_input_init();
+    fm1_adc_init();
+    usb_start();
+    timer5_start();
+    fm1_irq_enable_all();
+#endif
     persist_boot();
 #if FELUCCA_OTA
     if (flash_ok)
@@ -126,8 +134,10 @@ static void fm1_main(void)
     felucca_dbg.prev_home = felucca_dbg.home;
     felucca_dbg.prev_frames = felucca_dbg.ui_frames;
     felucca_dbg.prev_rst = fm1_boot.p3_rst;
+#if !BLACKBOX
     fm1_input_init();
     fm1_adc_init();
+#endif
     panel_init();
     felucca_init();
     master_boot();
@@ -142,12 +152,16 @@ static void fm1_main(void)
     }
 #endif
     audio_init();
+#if !BLACKBOX
     usb_start();
+#endif
 #if FELUCCA_UART
     uart_midi_init();
 #endif
     boot_leds();
+#if !BLACKBOX
     timer5_start();
+#endif
     fm1_guard_lock_top();
     fm1_irq_enable_all();
     fm1_delay_ms(30);
@@ -167,6 +181,18 @@ static void fm1_main(void)
     for (;;) {
         uint32_t m = fm1_ms;
         fm1_wdt_feed();
+#if BLACKBOX
+        bb_inputs_poll();
+        bb_remote_service();
+        {
+            static uint32_t role = 7;
+            static const char *const names[7] = {"TEMPO", "TRACK", "KNOB 1", "KNOB 2", "KNOB 3", "KNOB 4", "PRESET"};
+            if (role != bb_inputs.role) {
+                role = bb_inputs.role;
+                ui_message(names[role]);
+            }
+        }
+#endif
 #ifdef KT_ROWKEYS
         kt_poll(m);                                     /* 1.8 AFTERTOUCH (keytouch.c) */
 #endif
@@ -266,6 +292,9 @@ static void fm1_main(void)
         while (fm1_ms - m < 15u) {                               /* ~60 UI frames/s at most */
             ui_input();
 #if FELUCCA_OTA
+#if BLACKBOX
+            bb_remote_service();
+#endif
             ed_service();                       /* editor replies without waiting for the next frame */
 #endif
         }
@@ -281,6 +310,9 @@ void fm1_cstart(void)
                                                 * cleared below */
 #endif
     fm1_time_init();
+#if BLACKBOX
+    bb_board_early();
+#endif
     fm1_reset_reason();
     p3 = fm1_boot.p3_rst;
     src = fm1_boot.rst_src;

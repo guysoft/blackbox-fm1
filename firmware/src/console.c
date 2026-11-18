@@ -352,6 +352,9 @@ static void con_params(void)
 /* 1.8 AFTERTOUCH: the readings (keytouch.h), per key of F3 .. C5: its last driven reading and its pressure */
 static void con_at(void)
 {
+#if BLACKBOX
+    con_puts("no physical aftertouch on Blackbox; MIDI aftertouch supported\r\n");
+#else
     uint32_t k;
     con_kv("at_on", kt_on);
     con_kv("an_timeouts", fm1_an.timeouts);
@@ -364,6 +367,7 @@ static void con_at(void)
         con_dec(kt_p[k]);
         con_puts(k % 5u == 4u ? "\r\n" : " ");
     }
+#endif
 }
 
 static void con_exec(const char *p)

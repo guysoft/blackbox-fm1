@@ -32,6 +32,9 @@ static const panel_t PANEL_DEFAULT = {
 
 static void panel_init(void)                     /* also after a flash load: ids are used as array indexes and shifts */
 {
+#if BLACKBOX
+    panel = PANEL_DEFAULT; /* Remote ABI and physical adapter use fixed logical IDs, not learned matrix wiring. */
+#else
     uint32_t i, buttons = 0, encoders = 0, ok = panel.magic == PANEL_MAGIC;
     for (i = 0; ok && i < NB; i++) {
         ok = panel.btn[i] < NB && !(buttons & (1u << panel.btn[i]));
@@ -44,6 +47,7 @@ static void panel_init(void)                     /* also after a flash load: ids
     }
     if (!ok)
         panel = PANEL_DEFAULT;
+#endif
 }
 
 static uint32_t panel_btn_of(uint32_t matrix_id)        /* label of a matrix button, NB if none */

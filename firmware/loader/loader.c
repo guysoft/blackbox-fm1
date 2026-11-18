@@ -12,13 +12,21 @@
 #define FELUCCA_OTA 1
 #define FELUCCA_OTA_DRYRUN 0
 #define FELUCCA_USB_PID 0x0002
+#if BLACKBOX
+#define FELUCCA_ID "ota-BlackBox_950"
+#else
 #define FELUCCA_ID "ota-FM-1_900"
+#endif
 #define RING_PUBLISH() __asm__ volatile("" ::: "memory")
 #include "fm1_time.h"
 #include "fm1_sys.h"
 /* the loader may write the app area and erase update records; never the head, nor Felucca's store
  * [0x97000, 0xE0000) (user data, never a record: ldr_core.c) */
+#if BLACKBOX
+#define FL_RANGE_OK(off, n) (FL_IN(off, n, BB_APP_LO, BB_APP_HI) || FL_IN(off, n, 0xE0000u, 0xE5000u))
+#else
 #define FL_RANGE_OK(off, n) (FL_IN(off, n, 0x4000u, 0x97000u) || FL_IN(off, n, 0xE0000u, 0xFC000u))
+#endif
 #include "fm1_flash.h"
 #include "../bsp/chip/libc.c"
 #include "../bsp/chip/usb.c"

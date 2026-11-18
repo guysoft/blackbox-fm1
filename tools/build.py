@@ -33,6 +33,7 @@ LDR = OUT / "loader"
 sys.path.insert(0, str(SRC / "tools"))
 import fm1pkg_make  # noqa: E402
 import lz4blk  # noqa: E402
+import blackbox_pkg  # noqa: E402
 
 APP_XIP = 0x02000120                # app.bin offset 0 in the XIP map; the SPL jumps here
 APP_SLOT = fm1pkg_make.APP_SLOT
@@ -55,6 +56,25 @@ VERSION = None                      # FELUCCA_VERSION for release builds (defaul
 # stacks (firmware/bsp/chip/fm1_cpu1.S) linked and its waiting loop (.c1_text) checked; MENU > SYSTEM > 2ND CORE starts it
 # (OFF by default: one core, as 1.6). FELUCCA_CPU2=0: none of it is built (1.6's one-core code and RAM)
 CPU2 = os.environ.get("FELUCCA_CPU2") != "0"
+BOARD = "fm1"
+STOCK = None
+BOARD_FLAGS = []
+SOURCE_SHA = None
+
+
+def source_sha():
+    """Fingerprint source and pinned submodules, including uncommitted work."""
+    paths = subprocess.check_output(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=SRC).split(b"\0")
+    h = hashlib.sha256()
+    for raw in sorted(set(p for p in paths if p)):
+        path = SRC / os.fsdecode(raw)
+        if path.is_file():
+            h.update(raw + b"\0" + hashlib.sha256(path.read_bytes()).digest())
+        elif path.is_dir() and (path / ".git").exists():
+            rev = subprocess.check_output(["git", "-C", str(path), "rev-parse", "HEAD"])
+            h.update(raw + b"\0" + rev)
+    return h.hexdigest()
 
 
 def toolchain():
@@ -163,7 +183,7 @@ def hal_file(name):
 def build_loader():
     LDR.mkdir(parents=True, exist_ok=True)
     src = FW / "loader"
-    flags = [*CFLAGS, *HAL_INC, "-Ifirmware/src"]
+    flags = [*CFLAGS, *HAL_INC, *BOARD_FLAGS, "-Ifirmware/src"]
     tc_all(("cc", "-c", src / "crt0_ldr.S", "-o", LDR / "crt0_ldr.o"),
            ("cc", *flags, "-c", src / "loader.c", "-o", LDR / "loader.o"))
     elf = LDR / "loader.elf"
@@ -202,7 +222,7 @@ def ld_regions():
 
 
 def build_app():
-    flags = [*CFLAGS, *HAL_INC, "-Ifirmware/src", "-Ibuild/gen"]
+    flags = [*CFLAGS, *HAL_INC, *BOARD_FLAGS, "-Ifirmware/src", f"-I{GEN.relative_to(SRC)}"]
     for flag in ("FELUCCA_FLASH", "FELUCCA_OTA", "FELUCCA_OTA_DRYRUN", "FELUCCA_OTA_RAMONLY", "FELUCCA_CDC",
                  "FELUCCA_UART", "FELUCCA_UAC", "FELUCCA_UAC_TONE", "FELUCCA_UAC_48K", "FELUCCA_ICONS", "FELUCCA_SLICE", "FELUCCA_FM4",
                  "FELUCCA_CDC_DEFAULT", "FELUCCA_UAC_AS_FIRST", "FELUCCA_CPU2", "FELUCCA_ADPCM"):
@@ -385,12 +405,40 @@ def mmio_check():
 
 
 def main():
-    global PRODUCT, VERSION
+    global PRODUCT, VERSION, BOARD, STOCK, OUT, GEN, LDR, HAL_DIRS, HAL_INC, BOARD_FLAGS, SOURCE_SHA
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", metavar="X.Y", help="release build: identity FM-1_9XY, version string vX.Y")
     ap.add_argument("--sdk", type=Path, help="JieLi AC79 SDK checkout (default: $AC79_SDK)")
+    ap.add_argument("--board", choices=["fm1", *blackbox_pkg.PROFILES], default="fm1")
+    ap.add_argument("--stock", type=Path, help="exact pinned donor package for the Blackbox profile")
+    ap.add_argument("--build-id", type=int, default=950, help="experimental BlackBox_NNN identity")
     a = ap.parse_args()
+    BOARD = a.board
+    if BOARD != "fm1":
+        if a.release or not a.stock or not 950 <= a.build_id <= 979:
+            ap.error("Blackbox: --stock is required, --release unsupported, --build-id must be 950..979")
+        STOCK = a.stock.read_bytes()
+        blackbox_pkg.validate_profile(blackbox_pkg.inspect(STOCK), BOARD, stock=True)
+        p = blackbox_pkg.PROFILES[BOARD]
+        SOURCE_SHA = source_sha()
+        OUT = SRC / "build" / BOARD
+        GEN, LDR = OUT / "gen", OUT / "loader"
+        overlay = OUT / "hal"
+        overlay.mkdir(parents=True, exist_ok=True)
+        # Stage the unchanged MPL flash driver beside our XIP adapter. This
+        # redirects its quoted include without changing the BSP submodule.
+        shutil.copy(FW / "bsp/chip/fm1_flash.h", overlay / "fm1_flash.h")
+        shutil.copy(FW / "boards/blackbox/fm1_xip.h", overlay / "fm1_xip.h")
+        HAL_DIRS = (FW / "boards/blackbox", overlay, *HAL_DIRS)
+        HAL_INC = [f"-I{d.relative_to(SRC)}" for d in HAL_DIRS]
+        BOARD_FLAGS = ["-DBLACKBOX=1", f"-DBB_APP_LO={p['app_lo']}",
+                       f"-DBB_APP_HI={p['app_hi']}", "-DFELUCCA_UART=0",
+                       "-DFELUCCA_OTA_RAMONLY=1", f'-DBB_SOURCE_SHA="{SOURCE_SHA}"']
+        PRODUCT = f"BlackBox_{a.build_id:03d}"
+        VERSION = f"bb-dev-{a.build_id}"
     name = "felucca.fwsc"
+    if BOARD != "fm1":
+        name = f"blackbox-fm1-{a.build_id}.fwsc"
     if a.release:                   # one digit each: the identity has room for two (X.Y.Z and X.Y.Z.W keep X.Y's)
         m = re.fullmatch(r"(\d)\.(\d)(?:\.\d){0,2}(-[A-Za-z0-9]+)?", a.release)
         if not m:
@@ -425,8 +473,17 @@ def main():
         print("  FAIL ", e)
     if errors:
         raise SystemExit("build: checks failed")
-    pkg = fm1pkg_make.ufw(fm1pkg_make.flash_image(img, fm1pkg_make.KEY), ota, PRODUCT)
+    pkg = (blackbox_pkg.build(STOCK, img, ota, BOARD, PRODUCT) if BOARD != "fm1" else
+           fm1pkg_make.ufw(fm1pkg_make.flash_image(img, fm1pkg_make.KEY), ota, PRODUCT))
     (OUT / name).write_bytes(pkg)
+    if BOARD != "fm1":
+        import json
+        manifest = blackbox_pkg.inspect(pkg).report()
+        manifest.update(board=BOARD, hardware_tested=False, persistence=False,
+                        source_sha256=SOURCE_SHA,
+                        firmware_sha256=hashlib.sha256(img).hexdigest(),
+                        loader_sha256=hashlib.sha256(ota).hexdigest())
+        (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     att = SRC / "assets" / "samples-cc0" / "ATTRIBUTION.txt"
     if att.exists():
         shutil.copy(att, OUT / "ATTRIBUTION.txt")

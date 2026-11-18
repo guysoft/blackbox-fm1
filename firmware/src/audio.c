@@ -144,7 +144,11 @@ void fm1_alnk0_irq(void)                       /* via isr_alnk0 (bsp/chip/fm1_is
             song.cpu_q8 = load / CPU_AVG;
             audio_cpu_rem = load % CPU_AVG;
         }
+#if BLACKBOX
+        if (bb_audio_late())
+#else
         if (fm1_audio_free_half() != half)
+#endif
             felucca_dbg.late++;                         /* the DMA moved on while we rendered */
         felucca_dbg.halves++;
         felucca_dbg.last_us = us;

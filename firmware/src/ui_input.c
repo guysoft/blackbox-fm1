@@ -1890,6 +1890,10 @@ static void setup_show(const char *what, const char *name)     /* "PRESS" / "TUR
 }
 static void panel_setup(void)
 {
+#if BLACKBOX
+    ui_message("FIXED BLACKBOX PANEL");
+    return;
+#else
     uint32_t i, used = 0, t0 = fm1_ms;
     const panel_t old = panel;
     setup_title();
@@ -1948,4 +1952,5 @@ timeout:
     lcd_fill(0, 0, 240, 240, T_BG);
     ui.force = 1;
     ui_message("SETUP CANCELLED");
+#endif
 }

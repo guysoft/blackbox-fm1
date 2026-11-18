@@ -12,6 +12,9 @@ static void master_poll(void)
 #else
     int32_t a = fm1_adc_read(FM1_ADC_MASTER);           /* (the host tests: no keytouch.c) */
 #endif
+#if BLACKBOX
+    if (bb_master_owned && a > (int32_t)bb_remote_master) a = bb_remote_master; /* physical pot remains a safety ceiling */
+#endif
     if (a >= 0) {
         master_knob += (a * 16 - master_knob) / 8;
         song.master_q12 = master_of_pot((uint32_t)(master_knob / 16));

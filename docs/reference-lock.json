@@ -1,0 +1,50 @@
+{
+  "felucca": {"url": "https://github.com/hugelton/Felucca", "commit": "ca1db43a78455ae747766a2738f8580380d40bc1"},
+  "bsp": {"url": "https://github.com/hugelton/felucca-bsp", "commit": "5942e68b89ab9ccd23f2c541d712ca38fe635f11"},
+  "engines": {"url": "https://github.com/hugelton/Felucca-Engines", "commit": "d0260074ce100a47675814b7f38d61f11176c926"},
+  "openpocket": {"url": "https://github.com/isod89/openpocket", "commit": "995c84b5df53aace5d83478e66e85b37d0fa4372"},
+  "juicebox": {"url": "https://github.com/JPMViana/juicebox-nam-player", "commit": "16edaee1cdcccb8a13b80cea579354ec219f6b3e"},
+  "harbor": {"url": "https://github.com/markterm/harbor", "commit": "7fd7b2810a115a40c2b8025d1ff106f8ef668073", "reuse_licence": "not identified; no code copied"},
+  "downloads": [
+    {
+      "file": "jieli-linux-toolchains-20260730.1.tar.xz",
+      "url": "https://jl-update.oss-cn-shenzhen.aliyuncs.com/jieli-linux-toolchains-20260730.1.tar.xz",
+      "sha256": "a1545cddbc451a06bac43eb5cd96d831470c42a97c5c0b1f98879a20fc7647bd",
+      "extract": true
+    },
+    {
+      "file": "uv-0.13.9.tar.gz",
+      "url": "https://github.com/astral-sh/uv/releases/download/0.13.9/uv-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "a7fbaff2b9a271d85c1bdb540941090fd1ce011797b4abeb48e4dcd39c2471d5",
+      "extract": true
+    },
+    {
+      "file": "sdk-uboot.boot",
+      "url": "https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK/raw/AC79NN_SDK_V1.2.1_2023-12-13/cpu/wl82/tools/uboot.boot",
+      "sha256": "4e3b4c220dc96641cb5a723f41e68ce41d5261ae9434bb33fbd7f2c59976ded4",
+      "sdk_path": "uboot.boot"
+    },
+    {
+      "file": "sdk-cfg_tool.bin",
+      "url": "https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK/raw/AC79NN_SDK_V1.2.1_2023-12-13/cpu/wl82/tools/cfg_tool.bin",
+      "sha256": "276579954f076886a6a7694f65dc71c034a63a2c204b76749065c0ac7b010d1b",
+      "sdk_path": "cfg_tool.bin"
+    },
+    {
+      "file": "sdk-eq_cfg_hw.bin",
+      "url": "https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK/raw/AC79NN_SDK_V1.2.1_2023-12-13/cpu/wl82/tools/cfg/eq_cfg_hw.bin",
+      "sha256": "41167491bffed4651750719c973d2758adeb9021a5670d02d6a53c85ed80ea7d",
+      "sdk_path": "cfg/eq_cfg_hw.bin"
+    },
+    {
+      "file": "BlackBox_FACTORY_V20.fwsc",
+      "url": "https://raw.githubusercontent.com/entitymar/annblackbox-custom-firmware-installer/main/firmware/BlackBox_FACTORY_V20.fwsc",
+      "sha256": "c0fef191b860d3b20f77fc492a24986eef2d12df44bb5e38355684820e26cb08"
+    },
+    {
+      "file": "BlackBox-current.fwsc",
+      "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/BlackBox.fwsc",
+      "sha256": "67b087c9bd2aae98f09d63d70a6ab7fbe54826c4389b0dc874a4f183ab84415c"
+    }
+  ]
+}

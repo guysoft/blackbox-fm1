@@ -1,5 +1,9 @@
 # Contributing to Felucca
 
+For the independent **blackbox-fm1** fork, follow [RULES.md](RULES.md) and
+[PROGRESS.md](PROGRESS.md). Do not send Blackbox support requests to Felucca's
+maintainer. The original upstream contribution guidance follows.
+
 Felucca is maintained for the M-VAVE FM-1 only. Other-device ports and plugin-loading feature requests are outside this project's scope. Contributions may be declined, and no ongoing maintenance is promised.
 
 Thanks for helping! To keep things easy to follow, please use the right place:
