@@ -218,6 +218,13 @@ The earlier pending ROM/dump limitations above are superseded by this session.
 - 64 local tests pass after release-packaging tests. Source and CI changes
   require a fresh build; the exact publication package is not hardware-tested.
 - Publishing and CI completion are recorded by GitHub; see docs/RELEASING.md.
+- Published: https://github.com/guysoft/blackbox-fm1/releases/tag/v0.1.0-alpha.1
+  at commit `6dacbcca3115c5cc12ffd9d40af4f3ebfebfe7a4`. Branch and tag CI passed
+  (runs `44382097802`, `44388058188`). All published asset checksums verified.
+- Complete-source archive rebuilt without Git metadata to byte-identical firmware;
+  local, GitHub CI and published `.fwsc` all match SHA-256
+  `53d7c554e097d4ff56558764b64c65d787f8c69c90a4bd5dbaa9f45972a510a0`.
+  Publication did not flash or otherwise operate the connected pedal.
 
 ## Implemented
 
