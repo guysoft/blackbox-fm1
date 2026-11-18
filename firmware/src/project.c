@@ -1190,9 +1190,17 @@ static uint32_t persist_retry_ms;
 static void persist_boot(void)                    /* before settings_init / panel_init */
 {
 #if FELUCCA_FLASH
+#if !BLACKBOX
     persist_t p;
+#endif
     uint32_t f = irq_save();
     uint32_t flash_id = FL_FAR(fl_jedec_ram)();
+#if BLACKBOX
+    flash_ok = bb_flash_supported(flash_id);
+    irq_restore(f);
+    /* Bring-up needs the raw SPI driver for OTA only. Do not apply the FM-1
+     * plaintext XIP window or scan stock Blackbox bytes as user samples/data. */
+#else
     flash_ok = flash_id == 0x856014u || flash_id == 0xB36014u; /* known 1 MiB parts, else RAM-only */
     irq_restore(f);
     if (!flash_ok)
@@ -1219,6 +1227,7 @@ static void persist_boot(void)                    /* before settings_init / pane
                 proj_fetch(i);
     }
     up_boot();                                     /* user presets */
+#endif
 #endif
 }
 

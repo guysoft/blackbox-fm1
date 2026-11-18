@@ -64,17 +64,8 @@ SOURCE_SHA = None
 
 def source_sha():
     """Fingerprint source and pinned submodules, including uncommitted work."""
-    paths = subprocess.check_output(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=SRC).split(b"\0")
-    h = hashlib.sha256()
-    for raw in sorted(set(p for p in paths if p)):
-        path = SRC / os.fsdecode(raw)
-        if path.is_file():
-            h.update(raw + b"\0" + hashlib.sha256(path.read_bytes()).digest())
-        elif path.is_dir() and (path / ".git").exists():
-            rev = subprocess.check_output(["git", "-C", str(path), "rev-parse", "HEAD"])
-            h.update(raw + b"\0" + rev)
-    return h.hexdigest()
+    from source_fingerprint import source_sha as compute
+    return compute(SRC)
 
 
 def toolchain():

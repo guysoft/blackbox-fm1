@@ -5,7 +5,13 @@
   "openpocket": {"url": "https://github.com/isod89/openpocket", "commit": "995c84b5df53aace5d83478e66e85b37d0fa4372"},
   "juicebox": {"url": "https://github.com/JPMViana/juicebox-nam-player", "commit": "16edaee1cdcccb8a13b80cea579354ec219f6b3e"},
   "harbor": {"url": "https://github.com/markterm/harbor", "commit": "7fd7b2810a115a40c2b8025d1ff106f8ef668073", "reuse_licence": "not identified; no code copied"},
+  "blackbox_linux": {"url": "https://github.com/Bulrok/mvave-blackbox-linux", "commit": "efd51b92c780bc30c98945dbacbda2d71f7fc453", "use": "stock preset protocol reference; read-only subset verified on V17"},
   "downloads": [
+    {
+      "file": "BlackBox-wayback-20250705.fwsc",
+      "url": "https://web.archive.org/web/20250705173303id_/https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/BlackBox.fwsc",
+      "sha256": "fa8e38dadf871c162e51b89d89a36d0117d93adca413a86516ad3f4dbaba9382"
+    },
     {
       "file": "jieli-linux-toolchains-20260730.1.tar.xz",
       "url": "https://jl-update.oss-cn-shenzhen.aliyuncs.com/jieli-linux-toolchains-20260730.1.tar.xz",

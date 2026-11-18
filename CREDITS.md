@@ -2,6 +2,10 @@
 
 ## blackbox-fm1 port
 
+- [M-Vave Blackbox on Linux](https://github.com/Bulrok/mvave-blackbox-linux):
+  stock preset/status wire-protocol research (GPL-3.0-or-later). Used as a
+  reference for our read-only preset backup codec.
+
 - [OpenPocket](https://github.com/isod89/openpocket), isod89 and contributors:
   Blackbox hardware/audio/display research and pinned toolchain/SDK references
   (GPL-3.0-only project; BSP/loader portions retain MPL-2.0).

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Strict offline Blackbox package inspection and stock-derived packaging.
 
-The stock head is retained, not flashed by our loader. V20 and V23 have
-different app-area bases. Never infer those from a filename.
+The stock head is retained, not flashed by our loader. V17/V20/V23 have
+different app-area boundaries. Never infer those from a filename.
 """
 import argparse
 import hashlib
@@ -15,6 +15,10 @@ from pathlib import Path
 import fm1pkg_make as fmt
 
 PROFILES = {
+    "blackbox-v17": {
+        "stock_sha256": "fa8e38dadf871c162e51b89d89a36d0117d93adca413a86516ad3f4dbaba9382",
+        "stock_product": "BlackBox_017", "app_lo": 0x4000, "app_hi": 0xA3000,
+    },
     "blackbox-v20": {
         "stock_sha256": "c0fef191b860d3b20f77fc492a24986eef2d12df44bb5e38355684820e26cb08",
         "stock_product": "BlackBox_020", "app_lo": 0x4000, "app_hi": 0xA5000,

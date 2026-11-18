@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 /* Exercise the real loader against stock and our target package; never USB hardware. */
 #define BLACKBOX 1
+#include "../../firmware/boards/blackbox/flash_policy.h"
+static uint32_t test_flash_id = 0xEB6014u;
+static int ldr_flash_supported(void) { return bb_flash_supported(test_flash_id); }
 #define main fm1_loader_test_unused
 #include "../ldr_test.c"
 #undef main
@@ -13,12 +16,18 @@ int main(int argc, char **argv)
     uint32_t ofo, nfo, i;
     size_t olen;
     int rc;
-    assert(argc == 3);
+    assert(argc == 3 || argc == 4);
     old = load_logical(argv[1], &olen);
     logical = load_logical(argv[2], &logical_len);
     ofo = flash_off(old); nfo = flash_off(logical);
     for (i = 0; i < sizeof nor; i++) nor[i] = (uint8_t)(i * 13u);
     memcpy(nor, old + ofo, BB_APP_HI);
+    if (argc == 4) {
+        FILE *dump = fopen(argv[3], "rb");
+        assert(dump && fread(nor, 1, sizeof nor, dump) == sizeof nor);
+        assert(fgetc(dump) == EOF);
+        fclose(dump);
+    }
     memcpy(before, nor, sizeof nor);
     /* Whole-image corruption must be rejected before the first erase. */
     logical[nfo + BB_APP_LO + 512] ^= 1u;
@@ -29,6 +38,9 @@ int main(int argc, char **argv)
     rc = ldr_session();
     assert(rc == -14 && erases == 0);
     set_fl_size(logical, BB_APP_HI);
+    test_flash_id = 0xEB6015u; /* same family, wrong capacity must fail closed */
+    assert(ldr_session() == -16 && erases == 0);
+    test_flash_id = 0xEB6014u;
     {
         uint8_t e[32];
         memcpy(e, nor + 96, 32);

@@ -147,6 +147,8 @@ static int ldr_session(void)
     if (fl_size != LDR_APP_HI)
         return -14;                                      /* another board's package: refused before any erase */
 #if BLACKBOX
+    if (!ldr_flash_supported())
+        return -16;                                      /* unrecognised flash: no erase */
     if (ldr_target_layout())
         return -15;
 #endif

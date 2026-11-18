@@ -2,7 +2,14 @@
 
 ## Safety boundary
 
-Hardware is not present yet. Host tests and a target compiler cannot prove safe
+The connected unit reports stock V17; use the explicitly pinned `blackbox-v17`
+profile, not V20/V23.
+Identity/preset queries and a supervised full-flash backup succeeded. Two matching
+1 MiB dumps are saved; USB ROM entry/RAM-reader/return-to-stock are hardware-tested.
+First custom OTA install returned the expected runtime identity/source and
+healthy counters, but SCREEN capture failed. Repeat flashing stays disarmed;
+physical screen/audio and flash restoration remain untested (see PROGRESS.md).
+Host tests and a target compiler cannot prove safe
 flashing, boot, analog output or recovery. The project's default action must not
 open a MIDI port or write any flash.
 
@@ -47,6 +54,7 @@ Keep missing measurements explicitly marked unavailable.
 ```sh
 make setup                    # explicit pinned local downloads + uv sync --frozen; no system install
 make baseline                 # original FM-1 build, never install this on Blackbox
+make build BOARD=blackbox-v17  # surveyed V17 unit; offline build, not installation
 make build BOARD=blackbox-v20  # experimental, offline only
 make build BOARD=blackbox-v23
 make test
@@ -127,3 +135,54 @@ For an explicitly requested standalone audio probe:
 
 The host must release its USB ports for a phone to become the USB host. A phone
 companion and desktop updater cannot both own the same USB device connection.
+
+## Full flash read (supervised, no flash writes)
+
+`tools/blackbox_dump.py` loads checksum-pinned OpenPocket transport modules and
+the pinned JieLi RAM loader. An independent last-mile allowlist blocks flash
+erase/program/key-burn commands, restricts RAM writes to the loader, and limits
+flash reads to the 1 MiB address space. It reads the flash twice, fsyncs both
+copies, compares SHA-256, saves a manifest, then sends RUN_APP. Failure retains
+partial data and stops without automatic recovery or retry.
+
+```sh
+.venv/bin/python tools/blackbox_dump.py --check  # no USB device opened
+.venv/bin/python tools/blackbox_dump.py --execute \
+  --output artifacts/backups/NEW-UNIQUE-DIRECTORY --wait-seconds 90
+```
+
+The reader waits for the USB ROM device; it does NOT reboot a running pedal.
+Close editors/other MIDI owners before a separately authorized mode transition.
+Stock V17 on this unit accepted the SysEx `F0 22 24 35 7D F7` and returned to
+normal V17 after RUN_APP. That is evidence for this unit/version, not every
+AC791N product. Do not confuse it with the OTA trigger ending `7F F7`.
+If permission escalation is required, use `sudo-approve`, never plain sudo.
+No tools/packages are installed automatically.
+
+## V17 build and flash-driver evidence
+
+Pinned donor: `BlackBox-wayback-20250705.fwsc`, identity `BlackBox_017`, SHA-256
+in `docs/reference-lock.json`. The saved device dump independently confirms
+the boot head and app payload; its installed application base is `0x4000`.
+The profile writes only app sectors in `[0x4000,0xA3000)`, with separate OTA
+staging at `[0xE0000,0xE5000)`. The latter still overwrites stock sound-bank data.
+
+Measured flash ID is `0xEB6014`, 1 MiB. The board-only allowlist also retains
+the existing `0x856014`/`0xB36014` parts. This does not expand FM-1 support.
+The shared SPI driver is unchanged: `9F` JEDEC read, `06` write enable,
+`05` status/WIP polling, `20` 4 KiB erase, `02` 256-byte page program and
+`0B` fast read. It does not modify protection/QE/status registers. The runtime
+application permits writes only inside staging; the loader also permits the
+profile's app range. An unknown ID or installed boot-base mismatch is refused
+before loader erases. Device writes with this driver are STILL untested;
+recognizing the ID and successful vendor RAM-loader reads are not write proof.
+
+Blackbox `persist_boot` probes the part only. It deliberately skips the FM-1
+plaintext XIP-window setup and user-sample/settings scans. A host test compiles
+that actual boot function without those FM-1 helpers to enforce the separation.
+All `st_erase`/`st_prog` persistence paths remain disabled.
+
+V17 loader tests can initialize simulated NOR with the actual private backup:
+this checks boot-head and data preservation against the user's bytes, not just
+a synthetic pattern. This is host evidence, not a hardware installation.
+Build output: `build/blackbox-v17/blackbox-fm1-950.fwsc` and `manifest.json`.

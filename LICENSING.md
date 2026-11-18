@@ -5,11 +5,19 @@
 This repository is an independent GPL-3.0-only port. Original licences and
 attribution below remain in force. The new board adapters retain the SPDX
 licences in their headers. Blackbox development packages are assembled locally
-from an exact stock donor and contain retained vendor material; they are kept
-out of Git and are not published by this project. Do not apply upstream
+from an exact stock donor and contain retained vendor boot/configuration
+material. Packages are kept out of Git; experimental binary releases include
+them alongside the complete corresponding source and licence notices. GPL does
+not relicense the retained vendor bytes or establish their redistribution terms.
+Do not apply upstream
 Felucca's "No vendor material" statement below to these generated Blackbox
 packages. Harbor is inspected only as a reference; no code/artwork is copied
 without a clear reuse licence or permission.
+
+The Blackbox button cheat sheet (`docs/blackbox-controls.png`) is an AI-generated
+illustration commissioned for this project, distributed under GPL-3.0-only to the
+extent any copyright applies; it is not upstream artwork or an exact physical
+placement drawing.
 
 Felucca is free software, licensed under the GNU General Public License, version 3 only
 (`GPL-3.0-only`, full text in `LICENSE`). That covers the code and its own assets. A few

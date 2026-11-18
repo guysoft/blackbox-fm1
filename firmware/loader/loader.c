@@ -28,6 +28,10 @@
 #define FL_RANGE_OK(off, n) (FL_IN(off, n, 0x4000u, 0x97000u) || FL_IN(off, n, 0xE0000u, 0xFC000u))
 #endif
 #include "fm1_flash.h"
+#if BLACKBOX
+#include "../boards/blackbox/flash_policy.h"
+static int ldr_flash_supported(void) { return bb_flash_supported(fl_jedec_ram()); }
+#endif
 #include "../bsp/chip/libc.c"
 #include "../bsp/chip/usb.c"
 

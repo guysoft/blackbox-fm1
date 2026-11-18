@@ -77,3 +77,13 @@ def test_build_round_trip(monkeypatch):
     assert p.area[0x120:0x120 + len(app)] == app
     with pytest.raises(ValueError, match="stock checksum"):
         bb.build(out, app, b"FELUCCA-LOADER-1" + bytes(600), "synthetic", "BlackBox_952")
+
+
+def test_v17_profile_is_distinct():
+    p = bb.PROFILES["blackbox-v17"]
+    assert p["stock_product"] == "BlackBox_017"
+    assert (p["app_lo"], p["app_hi"]) == (0x4000, 0xA3000)
+    assert p["stock_sha256"] == "fa8e38dadf871c162e51b89d89a36d0117d93adca413a86516ad3f4dbaba9382"
+    for other in ("blackbox-v20", "blackbox-v23"):
+        assert (p["app_lo"], p["app_hi"]) != (
+            bb.PROFILES[other]["app_lo"], bb.PROFILES[other]["app_hi"])

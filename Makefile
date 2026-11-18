@@ -5,7 +5,10 @@ export AC79_SDK ?= $(CURDIR)/artifacts/sdk
 export PYTHON := $(PY)
 export TMPDIR ?= $(CURDIR)/artifacts/tmp
 BOARD ?= blackbox-v23
-STOCK = $(if $(filter blackbox-v20,$(BOARD)),artifacts/downloads/BlackBox_FACTORY_V20.fwsc,artifacts/downloads/BlackBox-current.fwsc)
+STOCK_blackbox-v17 := artifacts/downloads/BlackBox-wayback-20250705.fwsc
+STOCK_blackbox-v20 := artifacts/downloads/BlackBox_FACTORY_V20.fwsc
+STOCK_blackbox-v23 := artifacts/downloads/BlackBox-current.fwsc
+STOCK = $(STOCK_$(BOARD))
 
 .PHONY: help setup baseline build test upstream-test simulate ports info monitor iterate
 baseline build test upstream-test simulate: | artifacts/tmp
