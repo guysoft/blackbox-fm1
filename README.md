@@ -4,9 +4,10 @@ Independent port of [Felucca](https://github.com/hugelton/Felucca) to the
 M-VAVE ANN BlackBox. GPL-3.0-only; see [upstream credits](CREDITS.md) and
 [licensing](LICENSING.md). Not supported by Felucca or M-VAVE.
 
-**Experimental. First V17-profile custom install boots and answers runtime
-checks; user confirms visible UI, PARA control and audible output. Screen
-capture failed and repeat updates remain unqualified. Automatic flashing is disarmed.**
+**Experimental. V17 software updates, full capture and community BLE-MIDI now
+work on the surveyed unit. Linux verified advertising, connection, bidirectional
+panel traffic and a one-minute MIDI traffic test. Android delivery and audio
+under BLE remain unmeasured. Automatic flashing remains disarmed.**
 Do not install an FM-1 package on a Blackbox or bypass the hardware-validation gate.
 
 ## Goal
@@ -19,6 +20,14 @@ proof of working audio/display or recovery.
 The synth runs on the pedal. An Android USB-host companion can supply the full
 FM-1 panel, alongside an optional Alesis Q mini. Harbor's UI is a reference;
 code reuse is blocked until its licence is clarified.
+
+The original [Android companion app](https://github.com/guysoft/blackbox-companion-app) builds and runs on
+the test phone. Its source, APK builds, screenshot and release workflow now live
+in that separate repository; firmware releases do not bundle an APK.
+
+An opt-in [BLE-MIDI firmware build](docs/BLACKBOX-BLE.md) is integrated for V17.
+The installed `BLE_SELFCAL=1` variant measures radio trims at boot without JieLi
+Bluetooth libraries or calibration flash writes. Normal FM-1 builds retain BLE off.
 
 ## Start here
 

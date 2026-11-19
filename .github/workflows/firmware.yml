@@ -46,6 +46,10 @@ jobs:
           cp build/blackbox-v17/blackbox-fm1-950.fwsc artifacts/v17-first.fwsc
           make build BOARD=blackbox-v17 > artifacts/logs/v17-rebuild.log 2>&1
           cmp artifacts/v17-first.fwsc build/blackbox-v17/blackbox-fm1-950.fwsc
+          make build BOARD=blackbox-v17 BLE=1 BLE_SELFCAL=1 > artifacts/logs/v17-ble-selfcal.log 2>&1
+          cp build/blackbox-v17-ble-selfcal/blackbox-fm1-950.fwsc artifacts/v17-ble-first.fwsc
+          make build BOARD=blackbox-v17 BLE=1 BLE_SELFCAL=1 > artifacts/logs/v17-ble-rebuild.log 2>&1
+          cmp artifacts/v17-ble-first.fwsc build/blackbox-v17-ble-selfcal/blackbox-fm1-950.fwsc
       - name: Host tests (never opens a device)
         run: make test
       - name: Simulated V17 update and monitor loop (no hardware)

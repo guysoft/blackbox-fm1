@@ -9,3 +9,6 @@
 - Treat USB audio capture and analog output verification as separate capabilities.
 - One supervised initial installation, then logged, bounded automatic iteration.
 - No claim of reliable recovery until tested on the user's unit.
+- Optional V17 BLE-MIDI receiver supplies phone notes and full logical panel,
+  with USB retained for diagnostics. It is integrated, not hardware-qualified;
+  no wireless audio, Wi-Fi or large screen transfers are claimed.

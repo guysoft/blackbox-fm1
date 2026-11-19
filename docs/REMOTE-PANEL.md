@@ -1,12 +1,23 @@
 # Blackbox remote panel protocol v1
 
+Optional BLE transport and command 10/11 diagnostics:
+[BLACKBOX-BLE.md](BLACKBOX-BLE.md). USB/BLE share one panel owner; BLE never
+forwards SysEx to OTA/editor. USB token-zero diagnostic reads in BLE builds
+do not acquire/refresh the panel session.
+
 Experimental, host-tested; not hardware-qualified. Uses USB MIDI SysEx,
 independent of Felucca's existing editor and OTA namespaces.
 
 Request: `F0 7D 42 42 command arguments F7`.
+In BLE-capable builds, retrying HELLO with the same transport/token is idempotent:
+it renews the lease and returns identity without clearing held inputs or scheduling
+link-loss cleanup. A new token on that transport resets panel holds but keeps the
+MIDI link; another transport cannot steal an active session. RELEASE/lease expiry
+still request BLE MIDI cleanup.
 Reply: same header/command, then `rc`, payload, `F7`.
 Every data byte is 7-bit. `rc`: 0 OK, 1 arguments, 2 missing/wrong session,
-3 unavailable screen, 4 unknown command. Serialize requests; do not pipeline.
+3 unavailable screen, 4 unknown command, 5 owner busy (BLE builds).
+Serialize requests; do not pipeline.
 Unrelated messages (editor pushes, MIDI notes) are not replies.
 
 | Command | Arguments | Reply payload |

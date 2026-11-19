@@ -34,3 +34,38 @@ The V17 build profile ends its app region at `0xA3000`. Blackbox's exact JEDEC
 allowlist lives in `firmware/boards/blackbox/flash_policy.h`, used by runtime and
 loader. Its `persist_boot` only probes the chip; it does not install the FM-1
 plaintext XIP window or interpret stock regions as FM-1 samples/settings.
+
+Android companion lives in the separate `guysoft/blackbox-companion-app` repository,
+with native Java views and Android MIDI.
+`MidiController` owns ports, HELLO, bounded serialized requests and heartbeat on a
+worker thread. `Protocol` parses bounded SysEx streams independently of Android;
+`KeyHolds` tracks pointer ownership for the custom keyboard. Ordinary MIDI notes
+and logical panel keys are separate modes. The UI never derives a device display
+from local synthesis; screen/LED feedback is currently unavailable.
+
+Optional V17 BLE uses pinned Optimist sources, with board glue in `ble_radio.h`,
+bounded queues/namespace filtering in `ble_io.h`, and a dedicated read-only
+calibration reader for the verified A3000 VM sector. BLE IRQs feed TIMER5, the
+shared MIDI queue's sole producer; audio owns a separate 16-channel BLE bank.
+Disconnect cleanup discards pre-loss BLE events without discarding USB traffic.
+Remote replies are transport-bound; token-zero USB diagnostics do not take the
+phone's session. See `docs/BLACKBOX-BLE.md` for the unqualified hardware limits.
+
+Remote requests must be claimed at editor dispatch as well as the early main
+poll: otherwise an arrival during UI work falls through to OTA's destructive
+consume-on-mismatch parser. Release the shared RX frame after copying/building
+the reply but before making F7 visible. Both fixes passed unpaced hardware screen
+captures. The BLE hardware pilot then failed its separate calibration gate;
+backup bytes and live SPI reads are distinct evidence.
+
+BLE_CAL (11) exposes a fixed boot-time diagnostic snapshot over USB only,
+without owning/renewing the panel lease. The isolated BLE diagnostic build
+compiles out the call to radio startup even for valid calibration. Parser
+diagnostics retain partial evidence on a corrupt tail without accepting it.
+
+The explicit BLE_SELFCAL build selects a separately pinned source-only RF HAL
+without changing the original BSP/Optimist trees. Radio start measures trims at
+upstream's startup hooks; the adapter gates advertising on every return code and
+timeout, derives the address from the live flash UID, and never saves calibration.
+Boot-only BLE IRQ attachment must NOT lock the top vector guard: audio attaches
+later, then main locks it. A real crash at vector 11's store exposed that ordering.

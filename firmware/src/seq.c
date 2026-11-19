@@ -1274,6 +1274,9 @@ static uint8_t midi_route;                 /* the G_ROUTE events_block last saw 
 #define MIDI_ROUTE_AGAIN 0xFFu
 static int32_t midi_slot(uint32_t ch)      /* the track channel ch plays, -1 none (and with SEL) */
 {
+#if BLACKBOX_BLE
+    ch &= 15u; /* BLE owns a separate 16-channel bank; routing stays MIDI 1..16. */
+#endif
     int32_t b = midi_base(), omni = -1;
     uint32_t i;
     if (b != -2)
@@ -1296,6 +1299,24 @@ static track_t *midi_track(uint32_t ch)
 
 #include "midi_control.c"
 #include "midi_clock.c"
+
+#if BLACKBOX_BLE
+/* Audio context only: release this transport, including sustain-held notes.
+ * Physical panel keys and USB/TRS channel ownership remain intact. */
+static void bb_ble_audio_release(void)
+{
+    uint32_t ch, note;
+    if (!bb_ble_io.release_audio) return;
+    bb_ble_io.release_audio = 0;
+    if (mi_r == bb_ble_discard_until) bb_ble_discarding = 0;
+    for (ch = 16; ch < 32u; ch++) {
+        midi_pedal_up(ch);
+        for (note = 0; note < 128u; note++)
+            if (midi_notes[ch][note]) midi_release(ch, note);
+        memset(&midi_ch[ch], 0, sizeof midi_ch[ch]);
+    }
+}
+#endif
 
 /* the count-in: its first beat now (accented) */
 static __attribute__((noinline)) void cin_begin(void)
@@ -1447,6 +1468,9 @@ static void events_block(uint32_t n)
         t->aholdp = t->p[P_AHOLD];
     }
     keyboard_block();
+#if BLACKBOX_BLE
+    bb_ble_audio_release();
+#endif
     if (kt_seq != kt_done)
         kt_block();
     while (mi_r != mi_w) {                            /* USB-MIDI (and TRS) in */
@@ -1454,7 +1478,17 @@ static void events_block(uint32_t n)
         uint32_t st = status & 0xF0u, ch = status & 0x0Fu;
         uint32_t d1 = (pkt >> 16) & 0x7Fu, d2 = (pkt >> 24) & 0x7Fu;
         uint32_t source = midi_in_source[at] ? midi_in_source[at] : 1u, ms = midi_in_ms[at];
+#if BLACKBOX_BLE
+        if (source == 3u) ch += 16u;
+#endif
         mi_r++;
+#if BLACKBOX_BLE
+        if (bb_ble_discarding) {
+            uint32_t discard = source == 3u && (int32_t)(mi_r - bb_ble_discard_until) <= 0;
+            if (mi_r == bb_ble_discard_until) bb_ble_discarding = 0;
+            if (discard) continue;
+        }
+#endif
         if (status >= 0xF8u) {
             if (clock_mode == source) {
                 if (status == 0xF8u)

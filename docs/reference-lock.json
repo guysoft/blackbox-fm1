@@ -5,6 +5,32 @@
   "openpocket": {"url": "https://github.com/isod89/openpocket", "commit": "995c84b5df53aace5d83478e66e85b37d0fa4372"},
   "juicebox": {"url": "https://github.com/JPMViana/juicebox-nam-player", "commit": "16edaee1cdcccb8a13b80cea579354ec219f6b3e"},
   "harbor": {"url": "https://github.com/markterm/harbor", "commit": "7fd7b2810a115a40c2b8025d1ff106f8ef668073", "reuse_licence": "not identified; no code copied"},
+  "optimist_ble": {
+    "url": "https://github.com/w0ts/optimist",
+    "commit": "fcdc4881e8788365c62ea8be7fa11b4d82966bac",
+    "archive_sha256": "1f808e85414dc3038959c844fda4ea4f5a2ea92ab217556b600aaacbdcddc3dc",
+    "import_tree_sha256": "e9cb315247aff7eba69e34f46b0338c4ce42bd8158f945c5cd68d22e900665b3",
+    "tree_hash": "sorted relative paths, excluding NOTICE.md: sha256(path UTF-8 + NUL + binary file SHA-256)",
+    "licence": "GPL-3.0-only OR MPL-2.0; RF startup tables Apache-2.0"
+  },
+  "pocket_onyx": {
+    "url": "https://github.com/28spawn/Pocket-Onyx",
+    "commit": "8ebf3090d8df82a3f5e8806aec964c1e1e9079d1",
+    "archive_sha256": "65b408499f5cc1575dd4fc8bab35921adbe46614cddc82bb57386a71012d370e",
+    "use": "verbatim Optimist RF HAL hook version and adapted GPL VCO calibration; not its board layout, trims or experimental driver"
+  },
+  "fm1_rf_cal": {
+    "url": "https://github.com/hugelton/felucca-bsp",
+    "commit": "2a5af3dfc8bccb92e37d48a3e7e0bf9a5827e51f",
+    "use": "opt-in source-only calibration and matching radio HAL; existing BSP and Optimist pins unchanged",
+    "files": {
+      "fm1_rf_cal.h": "06a2507034ffa993b94e6b8b0174160ba4f9d85ba1b794f5cc4f9bbd8fb2abdc",
+      "fm1_ble_rf.h": "28c0b8e0528d715e328d86af602ae81451a53dee3ea717aa68f9195a8f1f35cc",
+      "fm1_ble.h": "468b997b0141e71e38382feea995b61e61abe36f25f5750e26728438a9352d9f",
+      "LICENSE": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+      "NOTICE": "b1914c9246626867a028ca7563b14756ced46982da6567bdf9ed92d72ff31e9e"
+    }
+  },
   "blackbox_linux": {"url": "https://github.com/Bulrok/mvave-blackbox-linux", "commit": "efd51b92c780bc30c98945dbacbda2d71f7fc453", "use": "stock preset protocol reference; read-only subset verified on V17"},
   "downloads": [
     {

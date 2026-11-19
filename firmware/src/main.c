@@ -141,6 +141,18 @@ static void fm1_main(void)
     panel_init();
     felucca_init();
     master_boot();
+#if BLACKBOX_BLE
+    fm1_ble_crumb_boot(); /* Preserve failure location even when this boot suppresses RF. */
+    bb_ble_cal_diag[0] = 2; /* Schema remains readable even if no RF/read attempt is allowed. */
+    bb_ble_cal_diag[1] = BLACKBOX_BLE_DIAGNOSTIC;
+    bb_ble_status[15] = 0xA3000u;
+    if (!bootguard.failed && !(fm1_boot.p3_rst & 4u))
+        bb_ble_boot();
+    else {
+        bb_ble_io.fault = 6; /* No repeated RF startup after a failed/WDT boot. */
+        bb_ble_status[0] = 3;
+    }
+#endif
     kb_boot_hold = 1;                         /* #137: no notes from the keys before the UI (seq.c keyboard_block) */
 #if FELUCCA_CPU2
     if (!bootguard.failed && (ui_prefs2 & (PREF_CPU2_ON >> 16))) {
@@ -184,6 +196,9 @@ static void fm1_main(void)
 #if BLACKBOX
         bb_inputs_poll();
         bb_remote_service();
+#if BLACKBOX_BLE
+        bb_ble_remote_service();
+#endif
         {
             static uint32_t role = 7;
             static const char *const names[7] = {"TEMPO", "TRACK", "KNOB 1", "KNOB 2", "KNOB 3", "KNOB 4", "PRESET"};

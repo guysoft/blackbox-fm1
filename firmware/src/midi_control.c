@@ -12,9 +12,18 @@ typedef struct {
     uint8_t ready, semis, cents;
     uint8_t rpn_msb, rpn_lsb;
 } midi_channel_t;
-static midi_channel_t midi_ch[16];
+#if BLACKBOX_BLE
+#define MIDI_CHANNELS 32u
+#else
+#define MIDI_CHANNELS 16u
+#endif
+static midi_channel_t midi_ch[MIDI_CHANNELS];
 /* Low bits: track + 1. High bit: key released, held by its channel's pedal. */
-static uint8_t midi_sel_on[16][128];
+#if BLACKBOX_BLE
+static uint8_t midi_sel_on[MIDI_CHANNELS][128] __attribute__((section(".pool")));
+#else
+static uint8_t midi_sel_on[MIDI_CHANNELS][128];
+#endif
 #define midi_notes midi_sel_on
 static uint16_t midi_owners[NTRK];           /* avoids rescanning all 2048 entries for CC123 */
 #define MIDI_PEDAL_NOTE 0x80u
@@ -55,7 +64,7 @@ static void midi_expression_channel(uint32_t ch)
 static int midi_note_held(const track_t *t, uint32_t note)
 {
     uint32_t ch, id = trk_index(t) + 1u;
-    for (ch = 0; ch < 16u; ch++)
+    for (ch = 0; ch < MIDI_CHANNELS; ch++)
         if ((midi_notes[ch][note] & 0x7Fu) == id && !mchord_of(ch, note, id))
             return 1;
     return mchord_held(id, note);
@@ -166,7 +175,7 @@ static void midi_pedal_up(uint32_t ch)
 static void __attribute__((noinline)) midi_forget_track(uint32_t track)
 {
     uint32_t ch, note;
-    for (ch = 0; ch < 16u; ch++) {
+    for (ch = 0; ch < MIDI_CHANNELS; ch++) {
         if (!(midi_ch[ch].targets & (1u << track)))
             continue;
         for (note = 0; note < 128u; note++)
@@ -371,7 +380,7 @@ static void midi_control(uint32_t ch, uint32_t cc, uint32_t value)
 static void __attribute__((noinline)) midi_route_block(void)
 {
     uint32_t ch, note;
-    for (ch = 0; ch < 16u; ch++) {
+    for (ch = 0; ch < MIDI_CHANNELS; ch++) {
         midi_channel_t *c = midi_channel(ch);
         if (midi_in_block(ch)) {
             midi_expression(midi_track(ch), c);

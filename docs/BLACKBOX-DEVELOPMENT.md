@@ -2,13 +2,15 @@
 
 ## Safety boundary
 
-The connected unit reports stock V17; use the explicitly pinned `blackbox-v17`
+The connected unit was surveyed on stock V17; use the pinned `blackbox-v17`
 profile, not V20/V23.
 Identity/preset queries and a supervised full-flash backup succeeded. Two matching
 1 MiB dumps are saved; USB ROM entry/RAM-reader/return-to-stock are hardware-tested.
-First custom OTA install returned the expected runtime identity/source and
-healthy counters, but SCREEN capture failed. Repeat flashing stays disarmed;
-physical screen/audio and flash restoration remain untested (see PROGRESS.md).
+Supervised software-only update now passes full screen capture and runtime
+checks. The following BLE pilot stopped at calibration validation (fault 5);
+the radio is off and USB remains responsive. Automatic flashing stays disarmed.
+Physical display/audio were user-confirmed on the first image, not measured on
+the BLE build. Flash restoration remains untested (see PROGRESS.md).
 Host tests and a target compiler cannot prove safe
 flashing, boot, analog output or recovery. The project's default action must not
 open a MIDI port or write any flash.

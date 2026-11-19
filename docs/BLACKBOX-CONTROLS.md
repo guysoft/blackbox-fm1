@@ -32,6 +32,13 @@ key on a layer or sequencer page has different behavior from a MIDI note.
 Use an explicit session/heartbeat and release remote holds on expiry/disconnect.
 Merge physical and remote holds without one source releasing the other's keys.
 
+The Android keyboard normally sends MIDI notes. Holding FX, SCL, EDIT, GLO, SEQ
+or REC temporarily selects logical panel keys for shortcuts; the manual Panel
+keys switch can keep that mode on. Hold REC first, then tap the lowest F (F3)
+to clear the selected track's sequence, not the entire song order. Routing
+changes release current keys; a finger already down must lift before it can
+trigger a shortcut. This avoids turning a sounding note into an accidental clear.
+
 Harbor's existing Compose panel routes directly to its NativeEngine emulator.
 A hardware backend needs outgoing Android MIDI, response parsing, capability
 negotiation and device screen/LED feedback. Do not run a second emulator to

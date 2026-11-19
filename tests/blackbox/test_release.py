@@ -7,7 +7,7 @@ import tarfile
 
 import pytest
 
-from release_blackbox import notes, source_archive
+from release_blackbox import notes, source_archive, collect_variants, VARIANTS
 from source_fingerprint import LOCK, file_sha, fingerprint, snapshot, source_sha
 
 
@@ -59,6 +59,50 @@ def test_complete_source_archive(tmp_path):
 def test_release_notes_distinguish_evidence_and_limits():
     text = notes("v0.1.0-alpha.1", {"product": "BlackBox_950", "source_sha256": "a" * 64})
     for required in ("have **not** been flashed", "persistence is disabled",
-                     "Screen capture currently fails", "Automatic repeat flashing is disarmed",
-                     "0xE0000,0xE5000", "GPL does not relicense", "full backup"):
+                      "screen captures", "Automatic repeat flashing is disarmed",
+                      "0xE0000,0xE5000", "GPL does not relicense", "full backup"):
         assert required in text
+    assert "blackbox-companion-app" in text and "host-tested, not yet hardware-tested" in text
+
+
+def fake_variants(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import release_blackbox
+    monkeypatch.setattr(release_blackbox, "validate_artifacts",
+                        lambda *args: SimpleNamespace(raw=b"package"))
+    for name, directory in VARIANTS.items():
+        folder = tmp_path / "build" / directory
+        (folder / "loader").mkdir(parents=True)
+        (folder / "felucca.bin").write_bytes(b"app")
+        (folder / "loader/ota.bin").write_bytes(b"loader")
+        manifest = {"source_sha256": "a" * 64, "firmware_sha256": file_sha(folder / "felucca.bin"),
+                    "loader_sha256": file_sha(folder / "loader/ota.bin")}
+        if name == "ble-selfcal":
+            manifest.update(ble=True, ble_selfcal=True, ble_radio_enabled=True, cpu2=False)
+        (folder / "manifest.json").write_text(json.dumps(manifest))
+
+
+def test_release_collects_both_variants(tmp_path, monkeypatch):
+    fake_variants(tmp_path, monkeypatch)
+    assert set(collect_variants(tmp_path, "a" * 64)) == {"usb-only", "ble-selfcal"}
+
+
+@pytest.mark.parametrize("variant,field,value", [
+    ("ble-selfcal", "ble_selfcal", False), ("ble-selfcal", "ble_radio_enabled", False),
+    ("ble-selfcal", "ble_diagnostic", True), ("ble-selfcal", "cpu2", True),
+    ("usb-only", "ble", True), ("usb-only", "source_sha256", "b" * 64),
+])
+def test_release_refuses_wrong_variant(tmp_path, monkeypatch, variant, field, value):
+    fake_variants(tmp_path, monkeypatch)
+    p = tmp_path / "build" / VARIANTS[variant] / "manifest.json"
+    m = json.loads(p.read_text()); m[field] = value
+    p.write_text(json.dumps(m))
+    with pytest.raises(ValueError):
+        collect_variants(tmp_path, "a" * 64)
+
+
+def test_release_refuses_changed_component(tmp_path, monkeypatch):
+    fake_variants(tmp_path, monkeypatch)
+    (tmp_path / "build/blackbox-v17-ble-selfcal/felucca.bin").write_bytes(b"changed")
+    with pytest.raises(ValueError, match="differs"):
+        collect_variants(tmp_path, "a" * 64)

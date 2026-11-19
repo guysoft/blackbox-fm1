@@ -53,6 +53,9 @@
 #if FELUCCA_OTA && !FELUCCA_FLASH
 #error "FELUCCA_OTA needs FELUCCA_FLASH"
 #endif
+#if BLACKBOX_BLE && (!BLACKBOX || !FELUCCA_OTA || FELUCCA_CPU2)
+#error "BLACKBOX_BLE requires the Blackbox OTA build with CPU2 disabled"
+#endif
 
 /* ------------------------------------------------------------- HAL --- */
 #include <stdint.h>
@@ -101,6 +104,9 @@ static __attribute__((noinline)) int c1_wait(void) { return fm1_cpu1_wait(); }  
 
 /* ------------------------------------------------- MIDI, sequencer --- */
 #include "../bsp/chip/usb.c"
+#if BLACKBOX_BLE
+#include "../boards/blackbox/ble_radio.h"
+#endif
 #if FELUCCA_UART
 #include "midi_uart.c"
 #endif
@@ -121,8 +127,14 @@ static __attribute__((noinline)) int c1_wait(void) { return fm1_cpu1_wait(); }  
 
 /* --------------------------------------------- storage, update, editor --- */
 #if FELUCCA_FLASH
+#if BLACKBOX_BLE_SELFCAL
+#define FL_UID 1
+#endif
 #include "fm1_flash.h"
 #include "storage_hw.c"
+#if BLACKBOX_BLE
+#include "../boards/blackbox/ble_storage.h"
+#endif
 #include "storage.c"
 #endif
 #include "upreset.c"             /* user presets (RAM mirror; flash with FELUCCA_FLASH) */
@@ -130,6 +142,9 @@ static __attribute__((noinline)) int c1_wait(void) { return fm1_cpu1_wait(); }  
 #if FELUCCA_OTA
 #include "../bsp/chip/ota.c"
 #include "ota_hw.c"
+#if BLACKBOX
+static int bb_remote_service(void);
+#endif
 #include "editor.c"              /* web editor SysEx (needs the OTA SysEx plumbing) */
 #if BLACKBOX
 #include "blackbox_remote.c"

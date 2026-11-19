@@ -22,13 +22,23 @@ The tag-only publish job has `contents: write` permission and cannot run unless
 the build job passes. It always creates a **pre-release**, never a stable release.
 Branch/PR builds retain the same asset layout as Actions artifacts for review.
 
+## Next candidate: v0.2.0-alpha.1
+
+The companion now lives at https://github.com/guysoft/blackbox-companion-app.
+Its source, screenshot, Android CI and development APKs are released separately.
+Firmware CI does not fetch or bundle an APK and does not need Android tooling.
+
 ## Assets
 
-- V17 `.fwsc`, raw app and loader binaries, provenance manifest.
+- Two explicitly named V17 variants: `*-v17-usb-only.fwsc` (radio disabled) and
+  `*-v17-ble-selfcal.fwsc` (community BLE with measured startup trims).
+  Each has its own raw app/loader and provenance manifest. Diagnostic images
+  and the older non-self-calibrating BLE variant are never release assets.
 - Complete source `.tar.gz`, including BSP/engine submodules, licences and
   `.source-fingerprint.json`. The lock verifies extracted source files and
   reproduces the build fingerprint without requiring `.git`.
 - Licence/attribution archive, control cheat sheet, release notes and SHA256SUMS.
+- Summary manifest links the companion repo and lists both firmware variants.
 
 Only tracked source files and explicitly selected output files are packaged.
 Device dumps, serials, user presets/IRs, downloaded stock files, toolchain caches
@@ -46,18 +56,30 @@ contents; use our `*-source.tar.gz` for complete corresponding source.
 5. The tag workflow rebuilds/tests and publishes the pre-release assets.
 6. Check the release manifest, complete-source contents and asset checksums.
 
-The build identity is currently `BlackBox_950`; the semantic release tag is
-recorded separately in the release manifest. The initial hardware pilot used an
-earlier source fingerprint; publication/CI changes make these exact release
-bytes a new build. Release notes must state that the exact CI package has not
-been flashed and that screen capture/repeat-flash qualification remain incomplete.
+The build identity remains `BlackBox_950`; the semantic release tag is recorded
+separately in manifests. Both variants must match the clean source fingerprint.
+CI rebuilds each V17 variant twice and compares bytes. Source/manifest/component
+hash mismatches, unexpected BLE flags or diagnostic images refuse packaging.
+
+Screen capture, software updates and Linux/Android BLE control have hardware
+evidence on earlier builds. The HELLO idempotence fix is host-tested but not yet
+installed. Do not label an exact release candidate hardware-tested until that
+exact package has a separately authorized supervised trial. Cold boot, stock
+restore, long-duration RF and formal audio latency remain unqualified.
+Persistence stays disabled; OTA still overwrites `[0xE0000,0xE5000)`.
+
+Tagging triggers public pre-release publication automatically: do not push a tag
+until the user authorizes cutting the release. The old alpha's GitHub metadata
+currently says non-prerelease despite its name; do not silently change it.
 
 To assemble the same asset set locally after a build:
 
 ```sh
-.venv/bin/python tools/release_blackbox.py --version v0.1.0-alpha.1 \
-  --output artifacts/releases/v0.1.0-alpha.1
+.venv/bin/python tools/release_blackbox.py --version v0.2.0-alpha.1 \
+  --output artifacts/releases/v0.2.0-alpha.1
 ```
 
 The assembler refuses a dirty tree, stale source fingerprint, wrong board,
 changed component hashes or an existing output directory.
+First build both inputs: `make build BOARD=blackbox-v17` and
+`make build BOARD=blackbox-v17 BLE=1 BLE_SELFCAL=1`.

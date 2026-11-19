@@ -916,6 +916,12 @@ static int ed_service(void)
     ed_sync();                                             /* v2 pushes (while watched) */
     if (!ota_frame_get(&p, &n))
         return 0;
+#if BLACKBOX
+    /* A remote request may arrive after the main loop's first remote poll.
+     * Claim it here before the non-editor fallback can hand it to OTA. */
+    if (bb_remote_service())
+        return 0;
+#endif
     if (n < 4u || p[0] != ED_HDR0 || p[1] != ED_HDR1 || p[2] != ED_HDR2)
         return 1;                                         /* sx_ready holds this frame for OTA */
     ed_w.last_ms = fm1_ms;                                 /* any request keeps WATCH alive */

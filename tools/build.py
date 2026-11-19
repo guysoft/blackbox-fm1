@@ -396,15 +396,24 @@ def mmio_check():
 
 
 def main():
-    global PRODUCT, VERSION, BOARD, STOCK, OUT, GEN, LDR, HAL_DIRS, HAL_INC, BOARD_FLAGS, SOURCE_SHA
+    global PRODUCT, VERSION, BOARD, STOCK, OUT, GEN, LDR, HAL_DIRS, HAL_INC, BOARD_FLAGS, SOURCE_SHA, CPU2
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", metavar="X.Y", help="release build: identity FM-1_9XY, version string vX.Y")
     ap.add_argument("--sdk", type=Path, help="JieLi AC79 SDK checkout (default: $AC79_SDK)")
     ap.add_argument("--board", choices=["fm1", *blackbox_pkg.PROFILES], default="fm1")
     ap.add_argument("--stock", type=Path, help="exact pinned donor package for the Blackbox profile")
     ap.add_argument("--build-id", type=int, default=950, help="experimental BlackBox_NNN identity")
+    ap.add_argument("--ble", action="store_true", help="experimental V17 BLE-MIDI peripheral; no device writes")
+    ap.add_argument("--ble-diagnostic", action="store_true", help="requires --ble; inspect calibration with radio disabled")
+    ap.add_argument("--ble-selfcal", action="store_true", help="requires --ble; measure RF trims using community source")
     a = ap.parse_args()
     BOARD = a.board
+    if a.ble_diagnostic and not a.ble:
+        ap.error("--ble-diagnostic requires --ble")
+    if a.ble_selfcal and not a.ble:
+        ap.error("--ble-selfcal requires --ble")
+    if a.ble and BOARD != "blackbox-v17":
+        ap.error("--ble currently requires the surveyed blackbox-v17 calibration layout")
     if BOARD != "fm1":
         if a.release or not a.stock or not 950 <= a.build_id <= 979:
             ap.error("Blackbox: --stock is required, --release unsupported, --build-id must be 950..979")
@@ -412,7 +421,8 @@ def main():
         blackbox_pkg.validate_profile(blackbox_pkg.inspect(STOCK), BOARD, stock=True)
         p = blackbox_pkg.PROFILES[BOARD]
         SOURCE_SHA = source_sha()
-        OUT = SRC / "build" / BOARD
+        OUT = SRC / "build" / (BOARD + ("-ble" if a.ble else "") +
+                               ("-selfcal" if a.ble_selfcal else "") + ("-diagnostic" if a.ble_diagnostic else ""))
         GEN, LDR = OUT / "gen", OUT / "loader"
         overlay = OUT / "hal"
         overlay.mkdir(parents=True, exist_ok=True)
@@ -425,6 +435,16 @@ def main():
         BOARD_FLAGS = ["-DBLACKBOX=1", f"-DBB_APP_LO={p['app_lo']}",
                        f"-DBB_APP_HI={p['app_hi']}", "-DFELUCCA_UART=0",
                        "-DFELUCCA_OTA_RAMONLY=1", f'-DBB_SOURCE_SHA="{SOURCE_SHA}"']
+        if a.ble:
+            CPU2 = False
+            BOARD_FLAGS += ["-DBLACKBOX_BLE=1", "-DFELUCCA_CPU2=0",
+                            f"-DBLACKBOX_BLE_DIAGNOSTIC={int(a.ble_diagnostic)}",
+                            f"-DBLACKBOX_BLE_SELFCAL={int(a.ble_selfcal)}"]
+            ble = FW / "third_party/optimist_ble"
+            shutil.copy(ble / "hal/ble_rf_tables_v15.h", overlay / "ble_rf_tables.h")
+            if a.ble_selfcal:
+                HAL_INC += ["-Ifirmware/third_party/fm1_rf_cal"]
+            HAL_INC += [f"-I{(ble / 'hal').relative_to(SRC)}"]
         PRODUCT = f"BlackBox_{a.build_id:03d}"
         VERSION = f"bb-dev-{a.build_id}"
     name = "felucca.fwsc"
@@ -473,7 +493,11 @@ def main():
         manifest.update(board=BOARD, hardware_tested=False, persistence=False,
                         source_sha256=SOURCE_SHA,
                         firmware_sha256=hashlib.sha256(img).hexdigest(),
-                        loader_sha256=hashlib.sha256(ota).hexdigest())
+                         loader_sha256=hashlib.sha256(ota).hexdigest())
+        if a.ble:
+            manifest.update(ble=True, ble_hardware_tested=False, ble_vm_area=0xA3000, cpu2=False)
+            manifest.update(ble_diagnostic=a.ble_diagnostic, ble_radio_enabled=not a.ble_diagnostic)
+            manifest.update(ble_selfcal=a.ble_selfcal)
         (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     att = SRC / "assets" / "samples-cc0" / "ATTRIBUTION.txt"
     if att.exists():

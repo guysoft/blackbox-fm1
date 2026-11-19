@@ -19,6 +19,16 @@ illustration commissioned for this project, distributed under GPL-3.0-only to th
 extent any copyright applies; it is not upstream artwork or an exact physical
 placement drawing.
 
+The optional Blackbox BLE build includes the pinned Optimist BLE stack by
+hdavid and Optimist contributors, under `GPL-3.0-only OR MPL-2.0` (GPL option
+used here), and JieLi/M-VAVE RF startup configuration under Apache-2.0.
+Its RF HAL hook version and the adapted VCO calibration credit Pocket-Onyx.
+See `firmware/third_party/optimist_ble/NOTICE.md` and its `LICENSES/`.
+The separately selected self-calibration build imports three verbatim headers
+from felucca-bsp: Apache-2.0 calibration by JieLi/Charles Vestal and dual-licensed
+radio HAL (GPL option). See `firmware/third_party/fm1_rf_cal/NOTICE.md`.
+This does not link JieLi's precompiled Bluetooth libraries.
+
 Felucca is free software, licensed under the GNU General Public License, version 3 only
 (`GPL-3.0-only`, full text in `LICENSE`). That covers the code and its own assets. A few
 bundled or ported parts keep their own licences; they are listed below, and their licence

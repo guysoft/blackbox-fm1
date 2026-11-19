@@ -5,6 +5,9 @@ export AC79_SDK ?= $(CURDIR)/artifacts/sdk
 export PYTHON := $(PY)
 export TMPDIR ?= $(CURDIR)/artifacts/tmp
 BOARD ?= blackbox-v23
+BLE ?= 0
+BLE_DIAGNOSTIC ?= 0
+BLE_SELFCAL ?= 0
 STOCK_blackbox-v17 := artifacts/downloads/BlackBox-wayback-20250705.fwsc
 STOCK_blackbox-v20 := artifacts/downloads/BlackBox_FACTORY_V20.fwsc
 STOCK_blackbox-v23 := artifacts/downloads/BlackBox-current.fwsc
@@ -25,7 +28,7 @@ setup:
 baseline:
 	./build.sh
 build:
-	./build.sh --board $(BOARD) --stock $(STOCK)
+	./build.sh --board $(BOARD) --stock $(STOCK) $(if $(filter 1,$(BLE)),--ble,) $(if $(filter 1,$(BLE_DIAGNOSTIC)),--ble-diagnostic,) $(if $(filter 1,$(BLE_SELFCAL)),--ble-selfcal,)
 test:
 	$(PY) -m pytest -q
 upstream-test:

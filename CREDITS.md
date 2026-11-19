@@ -14,6 +14,16 @@
 - [Harbor](https://github.com/markterm/harbor), Mark White: reference for the
   Android remote-panel architecture. No Harbor code or artwork copied; reuse
   licence not identified in the inspected checkout.
+- [Optimist](https://github.com/w0ts/optimist), BLE code by hdavid, Leo Kuroshita
+  (@kurogedelic), Hügelton Instruments and contributors: pinned BLE-MIDI stack
+  (`GPL-3.0-only OR MPL-2.0`; RF startup tables Apache-2.0).
+- [Pocket-Onyx](https://github.com/28spawn/Pocket-Onyx), @28spawn and the Onyx
+  Authors: radio integration research, RF HAL hooks and adapted VCO calibration
+  (`GPL-3.0-only`). Provenance: `firmware/third_party/optimist_ble/NOTICE.md`.
+- [fm1-base](https://github.com/charlesvestal/fm1-base), Charles Vestal, and
+  felucca-bsp contributors: source-only startup RF calibration and matching HAL.
+  Calibration follows JieLi's SDK; original notices/licences are retained in
+  `firmware/third_party/fm1_rf_cal/`.
 
 The independent Blackbox adapters and tools retain the SPDX licences in their
 headers. Original Felucca credits follow unchanged.
